@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Simple Insurance — Policyholder</title>
+  <link rel="icon" 
+        type="image/svg+xml" 
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%231D4ED8' d='M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5L12 1z'/></svg>" />
+
+  <!-- Tailwind Play CDN (no build) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Heroicons (SVG utility) -->
+  <script src="https://unpkg.com/feather-icons"></script>
+
+  <!-- Web3.js -->
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+
+  <!-- Contract ABI & address (create this file next) -->
+  <script src="contractABI.js"></script>
+
+  <!-- App script (we'll provide this file next) -->
+  <script defer src="script.js"></script>
+
+  <style>
+    /* small extra polish */
+    body { background: linear-gradient(180deg,#2378cc 0%, #eef2ff 100%); }
+  </style>
+</head>
+<body class="min-h-screen font-sans antialiased text-gray-800">
+  <header class="bg-white/80 backdrop-blur-sm sticky top-0 z-40">
+    <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="rounded-full bg-indigo-600 w-10 h-10 flex items-center justify-center text-white text-lg font-bold">SI</div>
+        <div>
+          <h1 class="text-lg font-semibold">Simple Insurance DApp</h1>
+          <p class="text-xs text-gray-500">Blockchain-backed policy management</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div id="networkBadge" class="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-700 hidden">Network: <span id="networkName"></span></div>
+        <button id="connectButton" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-md shadow hover:bg-indigo-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-3 .667-6 3-6s3 3 3 6-3 6-6 6-6-3-6-6 3-6 6-6" /></svg>
+          <span id="accountDisplay">Connect Wallet</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-6 py-10">
+    <!-- Hero -->
+    <section class="bg-white rounded-2xl p-6 shadow-md mb-8">
+      <div class="flex items-center gap-6">
+        <div class="flex-1">
+          <h2 class="text-2xl font-semibold">Welcome to your Policy Dashboard</h2>
+          <p class="mt-2 text-gray-600">Connect with MetaMask to view policies, pay premiums and submit claims. If you were issued a policy by the insurer, it will appear below.</p>
+          <div class="mt-4 flex gap-3">
+            <button id="refreshBtn" class="px-4 py-2 bg-gray-100 rounded-md">Refresh</button>
+            <button id="showSubmitClaim" class="px-4 py-2 bg-indigo-600 text-white rounded-md">Submit Claim</button>
+          </div>
+        </div>
+
+        <div class="w-48">
+          <img src="https://images.unsplash.com/photo-1559526324-593bc073d938?q=80&w=600&auto=format&fit=crop&ixlib=rb-4.0.3&s=9b8b2b9f9b3b4c2aa2a4f5f6a2b3c4d5" alt="insurance" class="rounded-xl shadow-sm object-cover w-full h-36">
+      </div>
+    </section>
+
+    <!-- Quick actions -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-white rounded-xl p-4 shadow">
+        <h3 class="font-medium">My Policies</h3>
+        <p class="text-sm text-gray-500 mt-1">List of policies associated with your address.</p>
+        <div class="mt-4">
+          <ul id="policiesList" class="space-y-3">
+            <!-- JS will populate policy cards here -->
+            <li class="text-sm text-gray-400">No policies loaded — click Refresh</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 shadow">
+        <h3 class="font-medium">Pay Premium</h3>
+        <p class="text-sm text-gray-500 mt-1">Enter a policy id and the premium to pay.</p>
+        <div class="mt-3 space-y-2">
+          <input id="policyIdPay" type="number" placeholder="Policy ID" class="w-full px-3 py-2 border rounded-md" />
+          <div class="flex gap-2">
+            <input id="premiumAmountEth" type="text" placeholder="Amount (ETH)" class="flex-1 px-3 py-2 border rounded-md" />
+            <button id="payPremiumBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-md">Pay</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl p-4 shadow">
+        <h3 class="font-medium">My Claims</h3>
+        <p class="text-sm text-gray-500 mt-1">Claims you have submitted and their status.</p>
+        <div class="mt-4">
+          <ul id="claimsList" class="space-y-2 text-sm text-gray-600">
+            <li class="text-gray-400">No claims loaded — click Refresh</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recent activity / logs -->
+    <section class="bg-white rounded-xl p-4 shadow mb-8">
+      <h3 class="font-medium mb-2">Activity</h3>
+      <div id="activityLog" class="text-sm text-gray-600 space-y-2 max-h-40 overflow-auto">
+        <div class="text-gray-400">No activity yet.</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Submit Claim Modal (hidden by default) -->
+  <div id="claimModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40">
+    <div class="bg-white rounded-xl w-11/12 max-w-lg p-6 shadow-lg">
+      <div class="flex justify-between items-center">
+        <h4 class="text-lg font-semibold">Submit Claim</h4>
+        <button id="closeClaimModal" class="text-gray-500">✕</button>
+      </div>
+
+      <div class="mt-4 space-y-3">
+        <label class="text-sm text-gray-600">Policy ID</label>
+        <input id="policyIdClaim" type="number" class="w-full px-3 py-2 border rounded-md" placeholder="Policy ID" />
+
+        <label class="text-sm text-gray-600">Claim Amount (ETH)</label>
+        <input id="claimAmountEth" type="text" class="w-full px-3 py-2 border rounded-md" placeholder="e.g., 0.05" />
+
+        <div class="flex justify-end gap-2 mt-4">
+          <button id="submitClaimCancel" class="px-4 py-2 border rounded-md">Cancel</button>
+          <button id="submitClaimBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-md">Submit Claim</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="max-w-5xl mx-auto px-6 py-6 text-center text-xs text-gray-500">
+    Built for demo • Make sure MetaMask is connected to the same network used in Remix.
+  </footer>
+
+  <script>
+    // tiny UI wiring for demo UX (JS will replace behavior later)
+    document.getElementById('showSubmitClaim').addEventListener('click', () => {
+      document.getElementById('claimModal').classList.remove('hidden');
+      document.getElementById('claimModal').classList.add('flex');
+    });
+    document.getElementById('closeClaimModal').addEventListener('click', () => {
+      document.getElementById('claimModal').classList.add('hidden');
+      document.getElementById('claimModal').classList.remove('flex');
+    });
+    document.getElementById('submitClaimCancel').addEventListener('click', () => {
+      document.getElementById('claimModal').classList.add('hidden');
+      document.getElementById('claimModal').classList.remove('flex');
+    });
+
+    // Replace icons via feather
+    feather.replace();
+  </script>
+</body>
+</html>
