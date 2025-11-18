@@ -29,7 +29,7 @@ A sample decentralized application built with Ethereum smart contracts to demons
 ## Tech Stack
 
 - **Frontend**: HTML, CSS, JavaScript  
-- **Smart Contract**: Solidity (`contracts/insurance.sol`)  
+- **Smart Contract**: Solidity   
 - **Blockchain Network**: Ethereum Sepolia Testnet  
 - **Wallet**: MetaMask (recommended)
 
@@ -63,3 +63,10 @@ const contract_address = "YOUR_DEPLOYED_CONTRACT_ADDRESS";
 const contract_abi = [
   // Paste the ABI JSON here from Remix
 ];
+```
+
+---
+
+## Note:
+
+This project is for educational purposes only and not suitable for production use. Please audit smart contracts and handle investments responsibly.
