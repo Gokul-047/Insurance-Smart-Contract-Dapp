@@ -1,12 +1,10 @@
-# Insurance DApp (Sepolia Testnet)
+# Insurance DApp 
 
 A sample decentralized application built with Ethereum smart contracts to demonstrate a basic insurance flow. This project uses **HTML**, **CSS**, **JavaScript**, and a **Solidity** smart contract deployed on the **Sepolia test network**.
 
 ---
 
-## Screenshots
-
-### User Interface Screens
+## User Interface Screens
 
 #### Index Page
 ![Index Page](./images/index.png)
